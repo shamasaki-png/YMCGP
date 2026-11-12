@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>アルコールチェック 管理者確認</title>
+<link rel="stylesheet" href="style.css"></head><body><div class="w">
+<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.500-7-10V6z"/><path d="M9 12l2.200 2.200L15.500 10"/></svg></i><h1>管理者確認<small>報告内容を確認し、疑義がなければ「確認完了」にします</small></h1></div>
+<div id="msg" class="sm"></div>
+
+<div id="lg" class="card">
+ <label>管理者名</label><select id="nm"></select>
+ <label>PIN</label><input type="password" id="pin" inputmode="numeric" autocomplete="off">
+ <div style="margin-top:14px"><button class="pri" id="go" style="width:100%">ログイン</button></div>
+</div>
+
+<div id="app" hidden>
+ <div class="sm" style="display:flex;justify-content:space-between;align-items:center"><span id="who"></span><button id="out" class="sm" style="min-height:32px">ログアウト</button></div>
+ <div class="card">
+  <label>対象月（空欄で全期間）</label><input type="month" id="fm">
+  <label>状態</label><select id="fs"><option value="p">未確認</option><option value="q">取消申請中</option><option value="a">酒気帯び有</option><option value="c">確認済</option><option value="">すべて</option></select>
+  <div id="sum" class="sm" style="margin-top:8px"></div>
+  <button id="rl" style="width:100%;margin-top:8px">最新の状態に更新</button>
+ </div>
+ <div id="lst"></div>
+</div></div>
+<script src="common.js"></script>
+<script>
+let rows=[];
+(async()=>{try{const j=await call('names');$('#nm').innerHTML=j.names.map(n=>`<option>${E(n)}</option>`).join('');
+ try{const o=JSON.parse(ls.g('au'));if(o){$('#nm').value=o.name;$('#pin').value=o.pin}}catch(e){}}catch(e){msg('接続できません：'+e.message,1)}})();
+$('#go').onclick=async()=>{U={name:$('#nm').value,pin:$('#pin').value};
+ try{const j=await call('login');if(!j.admin)throw new Error('管理者権限がありません');ls.s('au',JSON.stringify({name:U.name,pin:U.pin}));$('#lg').hidden=true;$('#app').hidden=false;$('#who').textContent=U.name+'（管理者）';msg('');load()}catch(e){msg(e.message,1)}};
+$('#out').onclick=()=>{ls.s('au','');location.reload()};
+const bad=c=>c.alc=='有';
+function card(c){const ok=c.rv=='済',id=E(c.id);let a;
+ if(c.rq=='申請中')a=`<div class="sm"><b style="color:var(--ng)">確認の取消申請（運転者より）：</b>${E(c.rr)}</div><input type="text" id="c${id}" placeholder="回答コメント" style="margin-top:6px"><div class="row" style="margin-top:8px"><button class="pri" data-ap="${id}">取消を許可</button><button data-rj="${id}">却下</button></div>`;
+ else if(ok)a=`<span class="tag ok">確認済</span> <span class="sm">確認者：${E(c.cf)}　${fmt(c.rt)} ${E(c.rc)}</span> <button data-un="${id}" style="min-height:34px">確認を取り消す</button>`;
+ else a=`<input type="text" id="c${id}" placeholder="コメント（任意）"><button class="pri" data-ok="${id}" style="width:100%;margin-top:8px">確認完了</button>`;
+ return `<div class="card ${bad(c)?'bad':'good'}"><b>${E(c.drv)}</b>　${E(c.veh)}<br>${E(c.ty)} ${fmt(c.at)}　${E(c.me)}${c.mo?'['+E(c.mo)+']':''}<br>検知器の結果：<b>${c.val===''?'未入力':E(c.val)+' mg/L'}</b>　酒気帯び <span class="tag ${c.alc=='有'?'ng':c.alc?'ok':''}">${E(c.alc||'未判定')}</span><br>${c.note?'指示事項等：'+E(c.note)+'<br>':''}<div id="p${id}" style="margin-top:6px">${c.ph?`<button data-ph="${id}">写真を表示</button>`:'<span class="sm">写真なし</span>'}</div><div style="margin-top:10px">${a}</div></div>`}
+function draw(){const t=$('#fs').value,s=rows.slice().sort((a,b)=>a.at<b.at?1:-1),
+ l=s.filter(c=>!t||(t=='p'&&c.rv!='済')||(t=='q'&&c.rq=='申請中')||(t=='a'&&bad(c))||(t=='c'&&c.rv=='済'));
+ $('#sum').textContent=`表示 ${l.length}件／全体：未確認 ${rows.filter(c=>c.rv!='済').length}件・取消申請 ${rows.filter(c=>c.rq=='申請中').length}件・酒気帯び有 ${rows.filter(bad).length}件`;
+ $('#lst').innerHTML=l.map(card).join('')||'<div class="sm">該当する記録はありません</div>'}
+async function load(){msg('読み込み中…');try{rows=(await call('list',{month:$('#fm').value})).rows;msg('');draw()}catch(e){msg(e.message,1)}}
+$('#fm').onchange=load;$('#rl').onclick=load;$('#fs').onchange=draw;
+$('#lst').onclick=async e=>{const t=e.target,d=t.dataset,cm=id=>(document.getElementById('c'+id)||{}).value||'';try{
+ if(d.ph){t.textContent='読み込み中…';const j=await call('photo',{id:d.ph});t.outerHTML=`<img class="pi" src="${j.img}" alt="検知器">`}
+ if(d.ok){await call('review',{id:d.ok,comment:cm(d.ok)});msg('確認完了にしました');load()}
+ if(d.un&&confirm('この記録の確認を取り消します。よろしいですか？')){await call('review',{id:d.un,undo:1});load()}
+ if(d.ap){await call('decide',{id:d.ap,ok:1,comment:cm(d.ap)});msg('取消を許可しました（運転者が修正・削除できます）');load()}
+ if(d.rj){await call('decide',{id:d.rj,ok:0,comment:cm(d.rj)});msg('取消申請を却下しました');load()}
+}catch(x){msg(x.message,1)}};
+</script></body></html>

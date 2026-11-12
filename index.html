@@ -3,38 +3,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="アルコールチェック">
 <title>アルコールチェック記録簿</title>
-<style>
-:root{--bg:#f2faf9;--cd:#fff;--tx:#17323b;--mu:#5f7c85;--bd:#d5e8e8;--ac:#0e9aa7;--ac2:#087f8b;--ok:#23915f;--ok2:#eaf8f1;--ng:#d6453d;--wn:#fff3f1;color-scheme:light}
-[hidden]{display:none!important}
-body{margin:0;background:linear-gradient(180deg,#d6f0ef 0,#f2faf9 240px) no-repeat,var(--bg);color:var(--tx);font:16px/1.65 -apple-system,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;-webkit-text-size-adjust:100%}
-.w{max-width:720px;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom))}
-.hd{display:flex;align-items:center;gap:12px;margin:4px 2px 16px}
-.hd i{flex:none;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#27c2c9,#0e9aa7);display:grid;place-items:center;box-shadow:0 4px 12px rgba(14,154,167,.3)}
-.hd svg{width:26px;height:26px}
-h1{margin:0;font:700 20px/1.35 "Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.03em}
-h1 small{display:block;margin-top:2px;color:var(--mu);font:400 12px/1.4 -apple-system,"Hiragino Sans",sans-serif;letter-spacing:0}
-.card{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(23,50,59,.05)}
-.card.good{border-left:5px solid var(--ok)}
-.card.bad{background:var(--wn);border-color:#f3c5c0;border-left:5px solid var(--ng)}
-label{display:block;font-weight:600;font-size:13px;color:var(--ac2);margin:14px 0 4px}
-input[type=text],input[type=password],input[type=number],input[type=datetime-local],input[type=month],select,textarea{width:100%;box-sizing:border-box;min-height:46px;padding:9px 12px;font:inherit;color:inherit;border:1.5px solid var(--bd);border-radius:12px;background:#f8fdfd}
-input[type=file]{width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1.5px dashed #9fd3d6;border-radius:12px;background:#f1fbfb}
-input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
-button{font:inherit;color:var(--ac2);min-height:46px;padding:8px 16px;border:1.5px solid var(--bd);border-radius:12px;background:#fff}
-button.pri{background:linear-gradient(135deg,#27c2c9,#0e9aa7);border:0;color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(14,154,167,.28)}
-.row{display:flex;flex-wrap:wrap;gap:6px 20px}.row label{display:flex;align-items:center;gap:6px;margin:0;color:var(--tx);font-weight:400;font-size:16px;min-height:40px}
-input[type=radio]{width:22px;height:22px;accent-color:var(--ac)}
-.tabs{display:flex;gap:4px;padding:4px;margin-bottom:12px;background:#d9eeee;border-radius:14px}
-.tabs button{flex:1;border:0;background:transparent;font-weight:600}
-.tabs button.on{background:#fff;color:var(--ac2);box-shadow:0 1px 6px rgba(23,50,59,.14)}
-summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
-.tag{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--bd);background:#fff}
-.tag.ok{color:var(--ok);border-color:#a9dcc3;background:var(--ok2)}.tag.ng{color:var(--ng);border-color:#f3c5c0;background:var(--wn)}
-#wn{border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600}
-.sm{font-size:12px;color:var(--mu)}#msg{margin:8px 2px;min-height:1em}
-#th,.pi{max-width:100%;max-height:280px;border-radius:12px;margin-top:8px}
-</style></head><body><div class="w">
-<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>運転前・運転後の確認をここで記録します</small></h1></div><div id="msg" class="sm"></div>
+<link rel="stylesheet" href="style.css"></head><body><div class="w">
+<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>本日も安全運転を心がけましょう( *´艸｀)</small></h1></div><div id="msg" class="sm"></div>
 
 <div id="lg" class="card">
  <label>氏名</label><select id="nm"></select>
@@ -51,7 +21,8 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
  <div class="sm" style="display:flex;justify-content:space-between;align-items:center"><span id="who"></span><button id="out" class="sm" style="min-height:32px">ログアウト</button></div>
  <div class="tabs"><button id="t1" class="on">チェック入力</button><button id="t2">記録簿</button></div>
 
- <div id="p1" class="card">
+ <div id="p1"><div class="card">
+  <div id="eb" hidden class="tag ng" style="display:block;margin-bottom:6px">修正中：送信すると記録が上書きされます　<button id="ec" style="min-height:32px">修正をやめる</button></div>
   <label>車両番号等（必須）</label><select id="veh"></select>
   <details id="vg"><summary>車両が見つからない：新しい車両を登録</summary>
    <input type="text" id="vn" placeholder="例：ハイエース 5-20" style="margin-top:6px">
@@ -66,9 +37,8 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
   <label>酒気帯び（0.15mg/L以上で自動的に「有」）</label><div id="alv"><span class="tag">未判定</span></div>
   <div id="wn" class="tag ng" hidden style="margin-top:8px;display:block">酒気帯びの恐れあり。運転せず、管理者へ連絡してください。</div>
   <label>指示事項またはその他必要な事項</label><textarea id="note" rows="2"></textarea>
-  <label>確認者</label><input type="text" id="cf">
   <button class="pri" id="sub" style="width:100%;min-height:54px;margin-top:16px">記録を送信</button>
- </div>
+ </div><div class="sm" style="margin:16px 4px 6px;font-weight:600">あなたの直近の記録（管理者の確認状況）</div><div id="rec"></div></div>
 
  <div id="p2" hidden>
   <div class="card"><label>対象月</label><input type="month" id="fm">
@@ -78,23 +48,20 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
  </div>
 </div></div>
 
+<div id="dn" hidden style="position:fixed;inset:0;z-index:9;background:rgba(23,50,59,.45);display:flex;align-items:center;justify-content:center;padding:24px"><div class="card" style="max-width:320px;width:100%;text-align:center;margin:0;padding:24px"><div style="width:56px;height:56px;margin:0 auto 10px;border-radius:50%;background:var(--ok2);color:var(--ok);display:grid;place-items:center;font-size:30px">✔</div><div style="font-size:20px;font-weight:700">送信完了</div><div class="sm" style="margin:6px 0 16px">記録を保存しました</div><button class="pri" id="dnb" style="width:100%">OK</button></div></div>
+<script src="common.js"></script>
 <script>
-const API='https://script.google.com/macros/s/AKfycbz6lmXEv-8Fdz-5EhO0UVgFjrP5WqWS2axjO_Mbx2hxixF_CFmfxGLvAgd4yC5DrQRF/exec';
-const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),val=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';
 const nowL=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
-const fmt=s=>{const m=/(\d+)-(\d+)-(\d+)T(\d+):(\d+)/.exec(s||'');return m?`${+m[2]}/${+m[3]} ${m[4]}:${m[5]}`:E(s)};
-const ls={g(k){try{return localStorage.getItem(k)||''}catch(e){return ''}},s(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
-const msg=(t,b)=>{$('#msg').textContent=t||'';$('#msg').style.color=b?'var(--ng)':''};
-let U={},rows=[],blob=null;
-async function call(a,d){const r=await fetch(API,{method:'POST',body:JSON.stringify({action:a,name:U.name,pin:U.pin,...d})});const j=await r.json();if(j.error)throw new Error(j.error);return j}
+let rows=[],blob=null,editId=null;
 
-$('#at').value=nowL();$('#fm').value=nowL().slice(0,7);$('#cf').value=ls.g('cf');
+$('#at').value=nowL();$('#fm').value=nowL().slice(0,7);
 (async()=>{try{const j=await call('names');$('#nm').innerHTML=j.names.map(n=>`<option>${E(n)}</option>`).join('');$('#veh').innerHTML=j.vehicles.map(n=>`<option>${E(n)}</option>`).join('');if(!j.names.length)$('#rg').open=true;if(!j.vehicles.length)$('#vg').open=true;
  try{const o=JSON.parse(ls.g('u'));if(o){$('#nm').value=o.name;$('#pin').value=o.pin}}catch(e){}}catch(e){msg('接続できません：'+e.message,1)}})();
-$('#go').onclick=async()=>{U={name:$('#nm').value,pin:$('#pin').value};try{const j=await call('login');U.admin=j.admin;ls.s('u',JSON.stringify({name:U.name,pin:U.pin}));$('#lg').hidden=true;$('#app').hidden=false;$('#who').textContent=U.name+(U.admin?'（管理者）':'');msg('')}catch(e){msg(e.message,1)}};
+$('#go').onclick=async()=>{U={name:$('#nm').value,pin:$('#pin').value};try{const j=await call('login');U.admin=j.admin;ls.s('u',JSON.stringify({name:U.name,pin:U.pin}));$('#lg').hidden=true;$('#app').hidden=false;$('#who').textContent=U.name+(U.admin?'（管理者）':'');msg('');load()}catch(e){msg(e.message,1)}};
 $('#vb').onclick=async()=>{const n=$('#vn').value.trim().replace(/\s+/g,' ');if(!n){msg('車両名（ナンバー等）を入力してください',1);return}
  try{await call('addveh',{vname:n});if(![...$('#veh').options].some(o=>o.value==n))$('#veh').add(new Option(n));$('#veh').value=n;$('#vn').value='';$('#vg').open=false;msg('車両を登録しました')}catch(e){msg(e.message,1)}};
+$('#dnb').onclick=()=>{$('#dn').hidden=true;window.scrollTo(0,0)};
 $('#out').onclick=()=>{ls.s('u','');location.reload()};
 $('#rb').onclick=async()=>{const n=$('#rn').value.trim(),p=$('#rp').value.trim();
  if(!n||!/^\d{4,6}$/.test(p)){msg('運転者名と、数字4〜6桁のPINを入力してください',1);return}
@@ -136,25 +103,39 @@ $('#ph').onchange=async e=>{blob=null;pday=null;$('#th').hidden=true;$('#pd').te
  catch(x){$('#ocr').textContent='自動読み取りを利用できませんでした。手入力してください。'}};
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 
+function resetForm(){editId=null;$('#eb').hidden=true;$('#veh').selectedIndex=0;$('#at').value=nowL();document.querySelector('[name=ty][value=運転前]').checked=true;document.querySelector('[name=me][value=その他]').checked=true;
+ $('#mo').hidden=false;$('#mo').value=DEF;$('#val').value='';$('#note').value='';$('#ph').value='';blob=null;pday=null;$('#th').hidden=true;$('#ocr').textContent='';$('#pd').textContent='';judge()}
+$('#ec').onclick=resetForm;
 $('#sub').onclick=async()=>{
- const d={veh:$('#veh').value,at:$('#at').value,ty:val('ty'),me:val('me'),mo:$('#mo').value.trim(),val:$('#val').value,note:$('#note').value.trim(),cf:$('#cf').value.trim()};
- if(!d.veh||!d.at||!blob){msg('車両・日時・検知器の表示画面の写真は必須です',1);return}
+ const d={veh:$('#veh').value,at:$('#at').value,ty:val('ty'),me:val('me'),mo:$('#mo').value.trim(),val:$('#val').value,note:$('#note').value.trim()};
+ if(!d.veh||!d.at||(!blob&&!editId)){msg('車両・日時・検知器の表示画面の写真は必須です',1);return}
  $('#sub').disabled=true;msg('送信中…');
- try{if(blob)d.photo=await b64(blob);await call('add',d);ls.s('cf',d.cf);msg('送信しました');
-  $('#val').value='';$('#note').value='';$('#ph').value='';blob=null;$('#th').hidden=true;$('#at').value=nowL();document.querySelector('[name=me][value=その他]').checked=true;$('#mo').hidden=false;$('#mo').value=DEF;$('#ocr').textContent='';$('#pd').textContent='';pday=null;judge()}
+ try{if(blob)d.photo=await b64(blob);const ed=editId;if(ed){d.id=ed;await call('update',d)}else await call('add',d);
+  resetForm();msg('');alert(ed?'✅ 送信完了\n\n修正内容を送信しました。':'✅ 送信完了\n\n一連の手続きが完了しました。');await load()}
  catch(e){msg('送信に失敗しました：'+e.message,1)}
  $('#sub').disabled=false};
 
-async function load(){msg('読み込み中…');try{rows=(await call('list',{month:$('#fm').value})).rows;msg('');draw()}catch(e){msg(e.message,1)}}
 const bad=c=>c.alc=='有';
-function draw(){const s=$('#fs').value,l=rows.filter(c=>!s||(s=='p'&&c.rv!='済')||(s=='a'&&bad(c))).sort((a,b)=>a.at<b.at?1:-1);
+function card(c){const ok=c.rv=='済',id=E(c.id);
+ let st=ok?`<span class="tag ok">確認済</span> <span class="sm">確認者：${E(c.cf)}　${fmt(c.rt)}${c.rc?'　'+E(c.rc):''}</span>`:'<span class="tag">未確認（管理者の確認待ち）</span>',ac='';
+ if(!ok){ac=`<button data-ed="${id}">修正</button> <button data-del="${id}">削除</button>`;if(c.rq=='許可済')st+=`<div class="sm">確認の取消が許可されました。修正・削除できます。${E(c.rp)}</div>`}
+ else if(c.rq=='申請中')st+='<div class="sm">確認の取消を申請中です（管理者の許可待ち）</div>';
+ else{ac=`<button data-rq="${id}">確認の取消を申請</button>`;if(c.rq=='却下')st+=`<div class="sm">取消申請は却下されました：${E(c.rp)}</div>`}
+ return `<div class="card ${bad(c)?'bad':'good'}"><b>${E(c.veh)}</b>　${E(c.ty)} ${fmt(c.at)}<br>${E(c.me)}${c.mo?'['+E(c.mo)+']':''}<br>${c.val===''?'数値未入力':E(c.val)+' mg/L'}　酒気帯び <span class="tag ${c.alc=='有'?'ng':c.alc?'ok':''}">${E(c.alc||'未判定')}</span><br>${c.note?E(c.note)+'<br>':''}<div style="margin-top:6px">${c.ph?`<button data-ph="${id}">写真を表示</button> `:''}${ac}</div><div style="margin-top:8px">${st}</div></div>`}
+function draw(){const s=rows.slice().sort((a,b)=>a.at<b.at?1:-1),m=$('#fm').value,t=$('#fs').value,
+ l=s.filter(c=>(!m||c.at.startsWith(m))&&(!t||(t=='p'&&c.rv!='済')||(t=='a'&&bad(c))));
+ $('#rec').innerHTML=s.slice(0,5).map(card).join('')||'<div class="sm">まだ記録はありません</div>';
  $('#sum').textContent=`${l.length}件／未確認 ${l.filter(c=>c.rv!='済').length}件／酒気帯び有 ${l.filter(bad).length}件`;
- $('#lst').innerHTML=l.map(c=>{const ok=c.rv=='済';
-  let r=ok?`<span class="tag ok">確認済</span> <span class="sm">${E(c.rb)} ${fmt(c.rt)} ${E(c.rc)}</span>`+(U.admin?` <button data-un="${E(c.id)}" class="sm" style="min-height:30px">取消</button>`:''):(U.admin?`<input type="text" id="c${E(c.id)}" placeholder="コメント"><button class="pri" data-ok="${E(c.id)}" style="width:100%;margin-top:6px">確認する</button>`:'<span class="tag">未確認</span>');
-  return `<div class="card ${bad(c)?'bad':'good'}"><b>${E(c.drv)}</b>　${E(c.veh)}　${E(c.ty)} ${fmt(c.at)}<br>${E(c.me)}${c.mo?'['+E(c.mo)+']':''}　${c.val===''?'数値未入力':E(c.val)+' mg/L'}　酒気帯び <span class="tag ${c.alc=='有'?'ng':c.alc?'ok':''}">${E(c.alc||'未判定')}</span><br>${c.note?E(c.note)+'<br>':''}<span class="sm">確認者：${E(c.cf)}</span><div>${c.ph?`<button data-ph="${E(c.id)}">写真を表示</button>`:''}</div><div style="margin-top:8px">${r}</div></div>`}).join('')||'<div class="sm">該当する記録はありません</div>'}
-$('#fm').onchange=load;$('#fs').onchange=draw;
-$('#lst').onclick=async e=>{const t=e.target,d=t.dataset;try{
+ $('#lst').innerHTML=l.map(card).join('')||'<div class="sm">該当する記録はありません</div>'}
+async function load(){try{rows=(await call('list',{mine:1})).rows;draw()}catch(e){msg(e.message,1)}}
+$('#fm').onchange=draw;$('#fs').onchange=draw;
+async function act(e){const t=e.target,d=t.dataset;try{
  if(d.ph){t.textContent='読み込み中…';const j=await call('photo',{id:d.ph});t.outerHTML=`<img class="pi" src="${j.img}" alt="検知器">`}
- if(d.ok){await call('review',{id:d.ok,comment:($('#c'+d.ok)||{}).value||''});load()}
- if(d.un){await call('review',{id:d.un,undo:1});load()}}catch(x){msg(x.message,1)}};
+ if(d.ed){const c=rows.find(x=>x.id==d.ed);editId=c.id;if(![...$('#veh').options].some(o=>o.value==c.veh))$('#veh').add(new Option(c.veh));$('#veh').value=c.veh;$('#at').value=c.at;
+  document.querySelector(`[name=ty][value=${c.ty}]`).checked=true;const mr=document.querySelector(`[name=me][value=${c.me}]`);if(mr)mr.checked=true;$('#mo').hidden=c.me!='その他';$('#mo').value=c.mo;
+  $('#val').value=c.val;judge();$('#note').value=c.note;$('#ph').value='';blob=null;$('#th').hidden=true;$('#eb').hidden=false;tab(1);window.scrollTo(0,0);msg('写真を変更しない場合は、そのまま送信できます')}
+ if(d.del&&confirm('この記録を削除します。よろしいですか？')){await call('remove',{id:d.del});msg('削除しました');await load()}
+ if(d.rq){const r=prompt('確認の取消を申請します。理由を入力してください');if(r){await call('reqcancel',{id:d.rq,reason:r});msg('取消を申請しました。管理者の許可をお待ちください');await load()}}
+ }catch(x){msg(x.message,1)}}
+$('#rec').onclick=act;$('#lst').onclick=act;
 </script></body></html>
