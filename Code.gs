@@ -1,6 +1,6 @@
 // アルコールチェック記録簿 バックエンド（Googleスプレッドシートに紐づくApps Script）
 // 「拡張機能 > Apps Script」に貼り付け → FOLDER_ID を設定 → ウェブアプリとしてデプロイ
-const FOLDER_ID = '【写真保存先のGoogleドライブフォルダID】';
+const FOLDER_ID = 'https://script.google.com/macros/s/AKfycbxUr7fKJEatMwppOgODVRk2bno-7LRKZUnKqoZxEXDB_IlRlJYABDp-UcqRxvnbMWRZ/exec';
 const TZ = 'Asia/Tokyo';
 
 const sh = n => SpreadsheetApp.getActive().getSheetByName(n);
