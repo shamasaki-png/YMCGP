@@ -52,19 +52,19 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
  <div class="tabs"><button id="t1" class="on">チェック入力</button><button id="t2">記録簿</button></div>
 
  <div id="p1" class="card">
-  <label>車両番号等</label><select id="veh"></select>
+  <label>車両番号等（必須）</label><select id="veh"></select>
   <details id="vg"><summary>車両が見つからない：新しい車両を登録</summary>
    <input type="text" id="vn" placeholder="例：ハイエース 5-20" style="margin-top:6px">
    <button id="vb" style="width:100%;margin-top:8px">車両を登録</button></details>
-  <label>確認日時</label><input type="datetime-local" id="at">
+  <label>確認日時（必須）</label><input type="datetime-local" id="at">
   <div class="row" style="margin-top:8px"><label><input type="radio" name="ty" value="運転前" checked>運転前</label><label><input type="radio" name="ty" value="運転後">運転後</label></div>
   <label>確認方法</label>
-  <div class="row"><label><input type="radio" name="me" value="対面">対面</label><label><input type="radio" name="me" value="電話">電話</label><label><input type="radio" name="me" value="ビデオ通話">ビデオ通話</label><label><input type="radio" name="me" value="その他">その他</label></div>
-  <input type="text" id="mo" placeholder="その他の内容" hidden style="margin-top:6px">
-  <label>検知器の結果（mg/L）</label><input type="number" id="val" step="0.01" min="0" inputmode="decimal" placeholder="0.00">
-  <label>酒気帯び</label><div class="row"><label><input type="radio" name="al" value="無">無</label><label><input type="radio" name="al" value="有">有</label></div>
+  <div class="row"><label><input type="radio" name="me" value="対面">対面</label><label><input type="radio" name="me" value="電話">電話</label><label><input type="radio" name="me" value="ビデオ通話">ビデオ通話</label><label><input type="radio" name="me" value="その他" checked>その他</label></div>
+  <input type="text" id="mo" placeholder="その他の内容" style="margin-top:6px">
+  <label>検知器の表示画面の写真（必須）</label><input type="file" id="ph" accept="image/*" capture="environment"><img id="th" hidden alt=""><div id="pd" class="sm" style="margin-top:6px"></div>
+  <label>検知器の結果（mg/L）：写真から自動で読み取ります</label><input type="number" id="val" step="0.01" min="0" inputmode="decimal" placeholder="0.00"><div id="ocr" class="sm" style="margin-top:6px"></div>
+  <label>酒気帯び（0.15mg/L以上で自動的に「有」）</label><div id="alv"><span class="tag">未判定</span></div>
   <div id="wn" class="tag ng" hidden style="margin-top:8px;display:block">酒気帯びの恐れあり。運転せず、管理者へ連絡してください。</div>
-  <label>検知器の表示画面の写真</label><input type="file" id="ph" accept="image/*" capture="environment"><img id="th" hidden alt="">
   <label>指示事項またはその他必要な事項</label><textarea id="note" rows="2"></textarea>
   <label>確認者</label><input type="text" id="cf">
   <button class="pri" id="sub" style="width:100%;min-height:54px;margin-top:16px">記録を送信</button>
@@ -79,7 +79,7 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
 </div></div>
 
 <script>
-const API='https://script.google.com/macros/s/AKfycbxBmk0I02Qn52Oy4hIJLxg3jTQXWjzyt_7TJxN8H5z3bc95Z9Tsuk4z-itK7fPZEZv6/exec';
+const API='https://script.google.com/macros/s/AKfycbz6lmXEv-8Fdz-5EhO0UVgFjrP5WqWS2axjO_Mbx2hxixF_CFmfxGLvAgd4yC5DrQRF/exec';
 const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),val=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';
 const nowL=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -102,30 +102,56 @@ $('#rb').onclick=async()=>{const n=$('#rn').value.trim(),p=$('#rp').value.trim()
 const tab=t=>{$('#p1').hidden=t!=1;$('#p2').hidden=t!=2;$('#t1').className=t==1?'on':'';$('#t2').className=t==2?'on':'';if(t==2)load()};
 $('#t1').onclick=()=>tab(1);$('#t2').onclick=()=>tab(2);
 document.querySelectorAll('[name=me]').forEach(r=>r.onchange=()=>{$('#mo').hidden=val('me')!='その他'});
-const warn=()=>{$('#wn').hidden=!(parseFloat($('#val').value)>0||val('al')=='有')};
-$('#val').oninput=()=>{const v=parseFloat($('#val').value);if(!isNaN(v))document.querySelector(`[name=al][value=${v>0?'有':'無'}]`).checked=true;warn()};
-document.querySelectorAll('[name=al]').forEach(r=>r.onchange=warn);
+const DEF='アルコール検知器による測定結果の撮影画像を専用アプリにて報告';$('#mo').value=DEF;
+const judge=()=>{const v=parseFloat($('#val').value),k=!isNaN(v);$('#alv').innerHTML=k?`<span class="tag ${v>=0.15?'ng':'ok'}">${v>=0.15?'有':'無'}</span>`:'<span class="tag">未判定</span>';$('#wn').hidden=!(k&&v>=0.15)};
+$('#val').oninput=judge;
 
 async function shrink(f){const b=await createImageBitmap(f),s=Math.min(1,1280/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=Math.round(b.width*s);c.height=Math.round(b.height*s);c.getContext('2d').drawImage(b,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,'image/jpeg',.8))}
-$('#ph').onchange=async e=>{blob=null;$('#th').hidden=true;const f=e.target.files[0];if(!f)return;try{blob=await shrink(f);$('#th').src=URL.createObjectURL(blob);$('#th').hidden=false}catch(x){msg('写真を読み込めませんでした',1)}};
+function exifDate(buf){try{const v=new DataView(buf);if(v.getUint16(0)!=0xFFD8)return '';let o=2;while(o+4<v.byteLength){const m=v.getUint16(o);if(m==0xFFDA)break;const L=v.getUint16(o+2);
+ if(m==0xFFE1&&v.getUint32(o+4)==0x45786966){const t=o+10,le=v.getUint16(t)==0x4949,g=(p,s)=>s?v.getUint16(p,le):v.getUint32(p,le),
+  ent=(ifd,tg)=>{const n=g(t+ifd,1);for(let i=0;i<n;i++){const e=t+ifd+2+i*12;if(g(e,1)==tg)return g(e+8,0)}return null},
+  i0=g(t+4,0),ex=ent(i0,0x8769);let p=null;if(ex!=null)p=ent(ex,0x9003);if(p==null&&ex!=null)p=ent(ex,0x9004);if(p==null)p=ent(i0,0x0132);if(p==null)return '';
+  let s='';for(let i=0;i<19;i++)s+=String.fromCharCode(v.getUint8(t+p+i));return s}
+ o+=2+L}}catch(e){}return ''}
+function photoDay(buf,f){const s=exifDate(buf);if(/^\d{4}:\d\d:\d\d/.test(s))return{d:s.slice(0,10).replace(/:/g,'-'),src:'撮影日'};if(f.lastModified){const d=new Date(f.lastModified);return{d:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,src:'ファイル日付（撮影日不明）'}}return null}
+let pday=null;
+function dayCheck(pop){if(!pday||!blob)return;const rd=$('#at').value.slice(0,10),ok=pday.d==rd;
+ $('#pd').innerHTML=ok?`✔ ${pday.src}：${pday.d}（確認日と一致）`:`<b style="color:var(--ng)">⚠ ${pday.src} ${pday.d} は、確認日 ${rd} と異なります</b>`;
+ if(!ok&&pop)alert(`写真の${pday.src}（${pday.d}）が、確認日（${rd}）と一致しません。\n別の日の写真ではないか確認してください。\n（このまま送信することもできます）`)}
+$('#at').onchange=()=>dayCheck(true);
+let tj=null;const loadT=()=>tj||(tj=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=()=>res(window.Tesseract);s.onerror=rej;document.head.appendChild(s)}));
+async function readNum(f){const T=await loadT(),bm=await createImageBitmap(f),s=Math.min(1,1400/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*s);c.height=Math.round(bm.height*s);
+ const x=c.getContext('2d');x.drawImage(bm,0,0,c.width,c.height);const im=x.getImageData(0,0,c.width,c.height),d=im.data,iv=x.createImageData(im);
+ for(let i=0;i<d.length;i+=4){const g=.3*d[i]+.59*d[i+1]+.11*d[i+2];d[i]=d[i+1]=d[i+2]=g;iv.data[i]=iv.data[i+1]=iv.data[i+2]=255-g;iv.data[i+3]=255}
+ x.putImageData(im,0,0);const c2=document.createElement('canvas');c2.width=c.width;c2.height=c.height;c2.getContext('2d').putImageData(iv,0,0);
+ const w=await T.createWorker('eng');await w.setParameters({tessedit_char_whitelist:'0123456789.',tessedit_pageseg_mode:'11'});let r=null;
+ for(const k of [c,c2]){const t=(await w.recognize(k)).data.text,m=t.match(/\d[.,]\d{2,3}/);if(m){r=parseFloat(m[0].replace(',','.'));break}}
+ await w.terminate();return r}
+$('#ph').onchange=async e=>{blob=null;pday=null;$('#th').hidden=true;$('#pd').textContent='';$('#ocr').textContent='';$('#val').value='';judge();const f=e.target.files[0];if(!f)return;
+ try{pday=photoDay(await f.arrayBuffer(),f)}catch(x){}
+ try{blob=await shrink(f)}catch(z){blob=f}
+ $('#th').src=URL.createObjectURL(blob);$('#th').hidden=false;dayCheck(true);
+ $('#ocr').textContent='写真から数値を読み取り中…（初回は少し時間がかかります）';
+ try{const v=await readNum(blob);if(v!=null&&v<2){$('#val').value=v.toFixed(2);judge();$('#ocr').textContent=`写真から ${v.toFixed(2)} と読み取りました。検知器の表示と違う場合は修正してください。`}else{$('#ocr').textContent='数値を読み取れませんでした。写真を見て、手入力してください。'}}
+ catch(x){$('#ocr').textContent='自動読み取りを利用できませんでした。手入力してください。'}};
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 
 $('#sub').onclick=async()=>{
- const d={veh:$('#veh').value,at:$('#at').value,ty:val('ty'),me:val('me'),mo:$('#mo').value.trim(),val:$('#val').value,alc:val('al'),note:$('#note').value.trim(),cf:$('#cf').value.trim()};
- if(!d.veh||!d.at||!d.me||d.val===''||!d.alc||!d.cf){msg('車両・日時・確認方法・検知結果・酒気帯び・確認者は必須です',1);return}
+ const d={veh:$('#veh').value,at:$('#at').value,ty:val('ty'),me:val('me'),mo:$('#mo').value.trim(),val:$('#val').value,note:$('#note').value.trim(),cf:$('#cf').value.trim()};
+ if(!d.veh||!d.at||!blob){msg('車両・日時・検知器の表示画面の写真は必須です',1);return}
  $('#sub').disabled=true;msg('送信中…');
  try{if(blob)d.photo=await b64(blob);await call('add',d);ls.s('cf',d.cf);msg('送信しました');
-  $('#val').value='';$('#note').value='';$('#ph').value='';blob=null;$('#th').hidden=true;$('#at').value=nowL();document.querySelectorAll('[name=al],[name=me]').forEach(x=>x.checked=false);$('#mo').hidden=true;warn()}
+  $('#val').value='';$('#note').value='';$('#ph').value='';blob=null;$('#th').hidden=true;$('#at').value=nowL();document.querySelector('[name=me][value=その他]').checked=true;$('#mo').hidden=false;$('#mo').value=DEF;$('#ocr').textContent='';$('#pd').textContent='';pday=null;judge()}
  catch(e){msg('送信に失敗しました：'+e.message,1)}
  $('#sub').disabled=false};
 
 async function load(){msg('読み込み中…');try{rows=(await call('list',{month:$('#fm').value})).rows;msg('');draw()}catch(e){msg(e.message,1)}}
-const bad=c=>c.alc=='有'||parseFloat(c.val)>0;
+const bad=c=>c.alc=='有';
 function draw(){const s=$('#fs').value,l=rows.filter(c=>!s||(s=='p'&&c.rv!='済')||(s=='a'&&bad(c))).sort((a,b)=>a.at<b.at?1:-1);
  $('#sum').textContent=`${l.length}件／未確認 ${l.filter(c=>c.rv!='済').length}件／酒気帯び有 ${l.filter(bad).length}件`;
  $('#lst').innerHTML=l.map(c=>{const ok=c.rv=='済';
   let r=ok?`<span class="tag ok">確認済</span> <span class="sm">${E(c.rb)} ${fmt(c.rt)} ${E(c.rc)}</span>`+(U.admin?` <button data-un="${E(c.id)}" class="sm" style="min-height:30px">取消</button>`:''):(U.admin?`<input type="text" id="c${E(c.id)}" placeholder="コメント"><button class="pri" data-ok="${E(c.id)}" style="width:100%;margin-top:6px">確認する</button>`:'<span class="tag">未確認</span>');
-  return `<div class="card ${bad(c)?'bad':'good'}"><b>${E(c.drv)}</b>　${E(c.veh)}　${E(c.ty)} ${fmt(c.at)}<br>${E(c.me)}${c.mo?'['+E(c.mo)+']':''}　${E(c.val)} mg/L　酒気帯び <span class="tag ${c.alc=='有'?'ng':'ok'}">${E(c.alc)}</span><br>${c.note?E(c.note)+'<br>':''}<span class="sm">確認者：${E(c.cf)}</span><div>${c.ph?`<button data-ph="${E(c.id)}">写真を表示</button>`:''}</div><div style="margin-top:8px">${r}</div></div>`}).join('')||'<div class="sm">該当する記録はありません</div>'}
+  return `<div class="card ${bad(c)?'bad':'good'}"><b>${E(c.drv)}</b>　${E(c.veh)}　${E(c.ty)} ${fmt(c.at)}<br>${E(c.me)}${c.mo?'['+E(c.mo)+']':''}　${c.val===''?'数値未入力':E(c.val)+' mg/L'}　酒気帯び <span class="tag ${c.alc=='有'?'ng':c.alc?'ok':''}">${E(c.alc||'未判定')}</span><br>${c.note?E(c.note)+'<br>':''}<span class="sm">確認者：${E(c.cf)}</span><div>${c.ph?`<button data-ph="${E(c.id)}">写真を表示</button>`:''}</div><div style="margin-top:8px">${r}</div></div>`}).join('')||'<div class="sm">該当する記録はありません</div>'}
 $('#fm').onchange=load;$('#fs').onchange=draw;
 $('#lst').onclick=async e=>{const t=e.target,d=t.dataset;try{
  if(d.ph){t.textContent='読み込み中…';const j=await call('photo',{id:d.ph});t.outerHTML=`<img class="pi" src="${j.img}" alt="検知器">`}

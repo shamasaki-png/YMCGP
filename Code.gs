@@ -1,6 +1,6 @@
 // アルコールチェック記録簿 バックエンド（Googleスプレッドシートに紐づくApps Script）
 // 「拡張機能 > Apps Script」に貼り付け → FOLDER_ID を設定 → ウェブアプリとしてデプロイ
-const FOLDER_ID = 'https://script.google.com/macros/s/AKfycbxUr7fKJEatMwppOgODVRk2bno-7LRKZUnKqoZxEXDB_IlRlJYABDp-UcqRxvnbMWRZ/exec';
+const FOLDER_ID = '1q6zX6-2CknEgJnuBb265kwj26zGofa9d';
 const TZ = 'Asia/Tokyo';
 
 const sh = n => SpreadsheetApp.getActive().getSheetByName(n);
@@ -67,7 +67,8 @@ function list(q, u) {
 }
 
 function add(q, u) {
-  if (!q.veh || !q.at || !q.me || q.val === '' || !q.alc || !q.cf) throw new Error('必須項目が未入力です');
+  if (!q.veh || !q.at || !q.photo) throw new Error('車両・日時・検知器の表示画面の写真は必須です');
+  const hv = q.val !== '' && q.val != null && isFinite(Number(q.val));   // 酒気帯びは数値から自動判定（0.15mg/L以上=有）
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     let ph = '';
@@ -78,8 +79,9 @@ function add(q, u) {
     }
     const s = sh('記録'), n = s.getLastRow() + 1;
     [2, 6, 16].forEach(c => s.getRange(n, c).setNumberFormat('@'));   // 日時は文字列で保存
-    const row = [Utilities.getUuid(), now(), u.name, q.veh, q.ty, q.at, q.me, q.mo || '', Number(q.val), q.alc,
-      q.note || '', q.cf, ph, '', '', '', ''];
+    const row = [Utilities.getUuid(), now(), u.name, q.veh, q.ty, q.at, q.me || 'その他', q.mo || '', hv ? Number(q.val) : '',
+      hv ? (Number(q.val) >= 0.15 ? '有' : '無') : '',
+      q.note || '', q.cf || '', ph, '', '', '', ''];
     s.getRange(n, 1, 1, row.length).setValues([row]);
   } finally { lock.releaseLock(); }
   return { ok: 1 };
