@@ -79,7 +79,7 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
 </div></div>
 
 <script>
-const API=AKfycbwvy4DMtBKmwIcSKPFxwKt_AnmeETmc6L8UjIlURBtLJbVk7rNIq7OBreWhSsduO7K7;
+const API='https://script.google.com/macros/s/AKfycbwvy4DMtBKmwIcSKPFxwKt_AnmeETmc6L8UjIlURBtLJbVk7rNIq7OBreWhSsduO7K7/exec';
 const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),val=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';
 const nowL=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
