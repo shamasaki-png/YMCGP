@@ -18,6 +18,9 @@ function auth(q) {
   return u;
 }
 
+// 動作確認用：ウェブアプリのURLをブラウザで開いて「OK」と出れば公開できている
+function doGet() { return ContentService.createTextOutput('OK'); }
+
 function doPost(e) {
   let r;
   try {
@@ -87,7 +90,7 @@ function add(q, u) {
     const ph = put(q, u), s = sh('記録'), n = s.getLastRow() + 1;
     [2, 6, 16, 20].forEach(c => s.getRange(n, c).setNumberFormat('@'));
     s.getRange(n, 1, 1, 21).setValues([[Utilities.getUuid(), now(), u.name, q.veh, q.ty, q.at, q.me || 'その他', q.mo || '', ...jv(q),
-      q.note || '', '', ph, '', '', '', '', '', '', '', '', '']]);
+      q.note || '', '', ph, ...Array(8).fill('')]]);
     return { ok: 1 };
   });
 }

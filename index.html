@@ -4,7 +4,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="アルコールチェック">
 <title>アルコールチェック記録簿</title>
 <link rel="stylesheet" href="style.css"></head><body><div class="w">
-<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>本日も安全運転を心がけましょう( *´艸｀)</small></h1></div><div id="msg" class="sm"></div>
+<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>運転前・運転後の確認をここで記録します</small></h1></div><div id="msg" class="sm"></div>
 
 <div id="lg" class="card">
  <label>氏名</label><select id="nm"></select>
@@ -50,6 +50,7 @@
 
 <div id="dn" hidden style="position:fixed;inset:0;z-index:9;background:rgba(23,50,59,.45);display:flex;align-items:center;justify-content:center;padding:24px"><div class="card" style="max-width:320px;width:100%;text-align:center;margin:0;padding:24px"><div style="width:56px;height:56px;margin:0 auto 10px;border-radius:50%;background:var(--ok2);color:var(--ok);display:grid;place-items:center;font-size:30px">✔</div><div style="font-size:20px;font-weight:700">送信完了</div><div class="sm" style="margin:6px 0 16px">記録を保存しました</div><button class="pri" id="dnb" style="width:100%">OK</button></div></div>
 <script src="common.js"></script>
+<script src="ocr.js"></script>
 <script>
 const pad=n=>String(n).padStart(2,'0'),val=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';
 const nowL=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -86,6 +87,7 @@ function dayCheck(pop){if(!pday||!blob)return;const rd=$('#at').value.slice(0,10
  $('#pd').innerHTML=ok?`✔ ${pday.src}：${pday.d}（確認日と一致）`:`<b style="color:var(--ng)">⚠ ${pday.src} ${pday.d} は、確認日 ${rd} と異なります</b>`;
  if(!ok&&pop)alert(`写真の${pday.src}（${pday.d}）が、確認日（${rd}）と一致しません。\n別の日の写真ではないか確認してください。\n（このまま送信することもできます）`)}
 $('#at').onchange=()=>dayCheck(true);
+async function readSeg(f){const bm=await createImageBitmap(f),s=Math.min(1,1200/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*s);c.height=Math.round(bm.height*s);const x=c.getContext('2d');x.drawImage(bm,0,0,c.width,c.height);const im=x.getImageData(0,0,c.width,c.height);return sevenSeg(im.data,c.width,c.height)}
 let tj=null;const loadT=()=>tj||(tj=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=()=>res(window.Tesseract);s.onerror=rej;document.head.appendChild(s)}));
 async function readNum(f){const T=await loadT(),bm=await createImageBitmap(f),s=Math.min(1,1400/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*s);c.height=Math.round(bm.height*s);
  const x=c.getContext('2d');x.drawImage(bm,0,0,c.width,c.height);const im=x.getImageData(0,0,c.width,c.height),d=im.data,iv=x.createImageData(im);
@@ -99,7 +101,7 @@ $('#ph').onchange=async e=>{blob=null;pday=null;$('#th').hidden=true;$('#pd').te
  try{blob=await shrink(f)}catch(z){blob=f}
  $('#th').src=URL.createObjectURL(blob);$('#th').hidden=false;dayCheck(true);
  $('#ocr').textContent='写真から数値を読み取り中…（初回は少し時間がかかります）';
- try{const v=await readNum(blob);if(v!=null&&v<2){$('#val').value=v.toFixed(2);judge();$('#ocr').textContent=`写真から ${v.toFixed(2)} と読み取りました。検知器の表示と違う場合は修正してください。`}else{$('#ocr').textContent='数値を読み取れませんでした。写真を見て、手入力してください。'}}
+ try{let v=null;try{v=await readSeg(blob)}catch(z){}if(v==null||v>=2)v=await readNum(blob);if(v!=null&&v<2){$('#val').value=v.toFixed(2);judge();$('#ocr').textContent=`写真から ${v.toFixed(2)} と読み取りました。検知器の表示と違う場合は修正してください。`}else{$('#ocr').textContent='数値を読み取れませんでした。写真を見て、手入力してください。'}}
  catch(x){$('#ocr').textContent='自動読み取りを利用できませんでした。手入力してください。'}};
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 
