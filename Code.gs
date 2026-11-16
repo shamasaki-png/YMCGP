@@ -154,7 +154,11 @@ function decide(q, u) {
 }
 
 // 管理者：記録簿（このスプレッドシート）のURLを返す。ブラウザで開いて直接閲覧・集計できる
-function sheeturl(q, u) { needAdmin(u); return { url: SpreadsheetApp.getActive().getUrl() }; }
+function sheeturl(q, u) {
+  needAdmin(u);
+  const ss = SpreadsheetApp.getActive();   // シート「記録」を開いた状態のURL（#gid=シートID）を返す
+  return { url: ss.getUrl().replace(/#.*$/, '') + '#gid=' + sh('記録').getSheetId() };
+}
 
 function photo(q, u) {
   const r = col('記録').find(x => x[0] == q.id);
