@@ -1,4 +1,4 @@
-const API='【Apps ScriptのウェブアプリURLをここに貼り付け】';
+const API='https://script.google.com/macros/s/AKfycbzDbo8VFi8AeBOD1QG6rk5zI0u34ZWcgLops6Xwu4U40_Trg6wEhCR_9CDWZVI_XWDg/exec';
 const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>{const m=/(\d+)-(\d+)-(\d+)T(\d+):(\d+)/.exec(s||'');return m?`${+m[2]}/${+m[3]} ${m[4]}:${m[5]}`:E(s)};
 const ls={g(k){try{return localStorage.getItem(k)||''}catch(e){return ''}},s(k,v){try{localStorage.setItem(k,v)}catch(e){}}};

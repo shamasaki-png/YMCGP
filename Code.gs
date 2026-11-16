@@ -1,6 +1,6 @@
 // アルコールチェック記録簿 バックエンド（Googleスプレッドシートに紐づくApps Script）
 // 「拡張機能 > Apps Script」に貼り付け → FOLDER_ID を設定 → ウェブアプリとしてデプロイ
-const FOLDER_ID = '【写真保存先のGoogleドライブフォルダID】';
+const FOLDER_ID = '1q6zX6-2CknEgJnuBb265kwj26zGofa9d';
 const TZ = 'Asia/Tokyo';
 // 「記録」シートの列: A ID,B 登録日時,C 運転者名,D 車両,E 運転前後,F 確認日時,G 確認方法,H その他,I 検知結果,J 酒気帯び,K 指示事項,
 // L 確認者(管理者名),M 写真ID,N 管理者確認,O 管理者名,P 確認日時,Q コメント,R 取消申請,S 申請理由,T 申請日時,U 回答コメント
