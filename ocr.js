@@ -89,15 +89,20 @@ function decode(M, lab, c, W) {
     // 数字の高さ・位置の候補（「1」ばかりで上下の横棒がない場合に備え、高さを少し補う）
     const places = [];
     for (const k of [1, 1.06, 1.12, 1.2, 1.3]) { const hh = Math.round(hhDet * k); places.push([b - hh + 1, b, hh]); if (k > 1) places.push([t, t + hh - 1, hh]); }
-    for (const [top, bot, hh] of places) for (let pk = .5; pk <= .701; pk += .02) for (const wk of [.44, .48, .52, .56, .6]) {
+    // 小数点の分だけ、1桁目と2桁目の間が広い機種にも対応する（gap：追加の間隔）
+    for (const [top, bot, hh] of places) for (let pk = .5; pk <= .821; pk += .02) for (const wk of [.44, .48, .52, .56, .6, .64, .68]) for (const gk of [0, .06, .12]) {
       const p = pk * hh, wd = Math.round(wk * hh);
       let str = '', S = 0, ok = true;
       for (let i = 0; i < 3 && ok; i++) {
-        const rx = Math.round(Rr - (2 - i) * p), a = rx - wd + 1, act = {};
+        const rx = Math.round(Rr - (2 - i) * p - (i === 0 ? gk * hh : 0)), a = rx - wd + 1, act = {};
         for (const k in SEG_Z) {
           const [fx0, fx1, fy0, fy1] = SEG_Z[k], xa = a + Math.round(fx0 * (wd - 1)), xb = a + Math.round(fx1 * (wd - 1)), ya = top + Math.round(fy0 * (hh - 1)), yb = top + Math.round(fy1 * (hh - 1));
           act[k] = sum(xa, xb, ya, yb) / ((xb - xa + 1) * (yb - ya + 1));
         }
+        // 線の太さや撮影条件で全体が薄くなっても読めるよう、その桁でいちばん濃い線を基準に正規化する
+        const am = Math.max(...Object.values(act));
+        if (am < .4) { ok = false; break; }
+        for (const k in act) act[k] = Math.min(1, act[k] / Math.max(am, .5));
         let hole = 0;
         for (const [fx0, fx1, fy0, fy1] of HOLES) {
           const xa = a + Math.round(fx0 * (wd - 1)), xb = a + Math.round(fx1 * (wd - 1)), ya = top + Math.round(fy0 * (hh - 1)), yb = top + Math.round(fy1 * (hh - 1));
@@ -109,7 +114,7 @@ function decode(M, lab, c, W) {
           let s = 0; for (const k in SEG_Z) s += SEG_T[d].includes(k) ? act[k] : 1 - act[k];
           s /= 7; if (s > b1) { b2 = b1; b1 = s; bd = d; } else if (s > b2) b2 = s;
         }
-        if (b1 < .86 || b1 - b2 < .07) ok = false; else { str += bd; S += b1; }
+        if (b1 < .84 || b1 - b2 < .09) ok = false; else { str += bd; S += b1; }
       }
       if (ok) cands.push({ s: str, score: S });
     }
@@ -120,28 +125,30 @@ function decode(M, lab, c, W) {
   return { s: [...near][0], score: top };
 }
 
-// d: RGBA画素, W×H: 画像サイズ（長辺1200px程度に縮小済みを想定）。戻り値: 数値（例 0.15）または null
-function sevenSeg(d, W, H) {
+// 色の抽出条件を変えながら試す（青・緑・赤のようにくっきりした色／紫・白っぽい淡い色の表示や、明るい場所での撮影に対応）
+const VARIANTS = [{ sat: .5, tf: .62 }, { blue: 45, tf: .7 }, { blue: 30, tf: .75 }, { sat: .3, tf: .7 }, { sat: .22, tf: .75 }];
+
+function readOnce(d, W, H, V) {
   const N = W * H, mx = new Uint8Array(N), hist = new Int32Array(256);
   let tot = 0;
   for (let i = 0, p = 0; i < N; i++, p += 4) {
     const r = d[p], g = d[p + 1], b = d[p + 2], m = Math.max(r, g, b), n = Math.min(r, g, b);
-    mx[i] = (m >= 100 && m - n >= .5 * m) ? m : 0;   // 鮮やかで明るい画素（青・緑・赤など色は問わない）
+    mx[i] = (V.blue ? (b >= 120 && b >= g && b - r >= V.blue) : (m >= 100 && m - n >= V.sat * m)) ? m : 0;   // 明るく色づいた画素（青系は紫がかった淡い色も含める）
     if (mx[i]) { hist[m]++; tot++; }
   }
-  if (tot < 150) return null;
+  if (tot < 150) return [];
   let acc = 0, p99 = 255;
   for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= tot * .01) { p99 = v; break; } }
-  const th = Math.max(110, .62 * p99), M = new Uint8Array(N);
+  const th = Math.max(110, V.tf * p99), M = new Uint8Array(N);
   for (let i = 0; i < N; i++) M[i] = mx[i] >= th ? 1 : 0;
   // 細い目盛りの点線を除いた版（開口処理）も試す
   const inv = new Uint8Array(N); for (let i = 0; i < N; i++) inv[i] = 1 - M[i];
   const er = boxDil(inv, W, H, 2); for (let i = 0; i < N; i++) er[i] = 1 - er[i];
   const MO = boxDil(er, W, H, 2);
   const tried = [], res = [];
-  for (const [MM, r] of [[M, 2], [M, 3], [M, 4], [M, 6], [MO, 2], [MO, 3], [MO, 4], [MO, 6]]) {
+  for (const [MM, r] of [[M, 2], [M, 3], [M, 4], [M, 6], [MO, 2], [MO, 3], [MO, 4], [MO, 6], [M, 12], [M, 20], [M, 30]]) {
     const { C, lab } = comps(boxDil(MM, W, H, r), MM, W, H);
-    const L = C.filter(c => { const w = c.x1 - c.x0 + 1, h = c.y1 - c.y0 + 1, f = c.m / (w * h); return c.m >= 120 && h >= 14 && h <= H * .4 && w / h >= 1 && w / h <= 3.4 && f >= .22 && f <= .8; })
+    const L = C.filter(c => { const w = c.x1 - c.x0 + 1, h = c.y1 - c.y0 + 1, f = c.m / (w * h); return c.m >= 120 && h >= 14 && h <= H * .4 && w / h >= 1 && w / h <= 3.4 && f >= .13 && f <= .8; })
       .sort((a, b) => b.m - a.m).slice(0, 8);
     for (const c of L) {
       const dup = tried.some(q => { const ix = Math.min(q.x1, c.x1) - Math.max(q.x0, c.x0), iy = Math.min(q.y1, c.y1) - Math.max(q.y0, c.y0); if (ix < 0 || iy < 0) return false; const it = ix * iy; return it / ((q.x1 - q.x0) * (q.y1 - q.y0) + (c.x1 - c.x0) * (c.y1 - c.y0) - it) > .85; });
@@ -151,10 +158,20 @@ function sevenSeg(d, W, H) {
       if (o) res.push(o);
     }
   }
-  if (!res.length) return null;
-  const best = Math.max(...res.map(q => q.score)), strs = new Set(res.filter(q => q.score >= best - .12).map(q => q.s));
-  if (strs.size !== 1) return null;
-  const s = [...strs][0];
-  return parseFloat(s[0] + '.' + s.slice(1));
+  return res;
+}
+
+// d: RGBA画素, W×H: 画像サイズ（長辺1200px程度に縮小済みを想定）。戻り値: 数値（例 0.15）または null
+// 最初に読めた条件の結果を採用する。読み方が複数あり得る場合は null（＝手入力）にする。
+function sevenSeg(d, W, H) {
+  for (const V of VARIANTS) {
+    const res = readOnce(d, W, H, V);
+    if (!res.length) continue;
+    const best = Math.max(...res.map(q => q.score)), strs = new Set(res.filter(q => q.score >= best - .12).map(q => q.s));
+    if (strs.size !== 1) return null;
+    const s = [...strs][0];
+    return parseFloat(s[0] + '.' + s.slice(1));
+  }
+  return null;
 }
 if (typeof module !== 'undefined') module.exports = { sevenSeg };

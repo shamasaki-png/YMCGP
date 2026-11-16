@@ -27,3 +27,6 @@ summary{min-height:40px;color:var(--ac2);font-weight:600;cursor:pointer}
 #wn{border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600}
 .sm{font-size:12px;color:var(--mu)}#msg{margin:8px 2px;min-height:1em}
 #th,.pi{max-width:100%;max-height:280px;border-radius:12px;margin-top:8px}
+
+.row2{display:flex;gap:8px;flex-wrap:wrap}.row2 button{flex:1;min-width:140px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}

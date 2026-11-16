@@ -19,6 +19,7 @@
   <label>状態</label><select id="fs"><option value="p">未確認</option><option value="q">取消申請中</option><option value="a">酒気帯び有</option><option value="c">確認済</option><option value="">すべて</option></select>
   <div id="sum" class="sm" style="margin-top:8px"></div>
   <button id="rl" style="width:100%;margin-top:8px">最新の状態に更新</button>
+  <button id="sheet" style="width:100%;margin-top:8px">📊 記録簿（スプレッドシート）をブラウザで開く</button>
  </div>
  <div id="lst"></div>
 </div></div>
@@ -41,6 +42,7 @@ function draw(){const t=$('#fs').value,s=rows.slice().sort((a,b)=>a.at<b.at?1:-1
  $('#sum').textContent=`表示 ${l.length}件／全体：未確認 ${rows.filter(c=>c.rv!='済').length}件・取消申請 ${rows.filter(c=>c.rq=='申請中').length}件・酒気帯び有 ${rows.filter(bad).length}件`;
  $('#lst').innerHTML=l.map(card).join('')||'<div class="sm">該当する記録はありません</div>'}
 async function load(){msg('読み込み中…');try{rows=(await call('list',{month:$('#fm').value})).rows;msg('');draw()}catch(e){msg(e.message,1)}}
+$('#sheet').onclick=async()=>{try{const j=await call('sheeturl');if(!window.open(j.url,'_blank'))location.href=j.url}catch(e){msg(e.message,1)}};
 $('#fm').onchange=load;$('#rl').onclick=load;$('#fs').onchange=draw;
 $('#lst').onclick=async e=>{const t=e.target,d=t.dataset,cm=id=>(document.getElementById('c'+id)||{}).value||'';try{
  if(d.ph){t.textContent='読み込み中…';const j=await call('photo',{id:d.ph});t.outerHTML=`<img class="pi" src="${j.img}" alt="検知器">`}

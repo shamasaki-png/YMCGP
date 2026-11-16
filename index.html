@@ -4,7 +4,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="アルコールチェック">
 <title>アルコールチェック記録簿</title>
 <link rel="stylesheet" href="style.css"></head><body><div class="w">
-<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>運転前・運転後の確認をここで記録します</small></h1></div><div id="msg" class="sm"></div>
+<div class="hd"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><h1>アルコールチェック記録簿<small>今日も安全運転を心がけましょう ( *´艸｀)</small></h1></div><div id="msg" class="sm"></div>
 
 <div id="lg" class="card">
  <label>氏名</label><select id="nm"></select>
@@ -32,7 +32,8 @@
   <label>確認方法</label>
   <div class="row"><label><input type="radio" name="me" value="対面">対面</label><label><input type="radio" name="me" value="電話">電話</label><label><input type="radio" name="me" value="ビデオ通話">ビデオ通話</label><label><input type="radio" name="me" value="その他" checked>その他</label></div>
   <input type="text" id="mo" placeholder="その他の内容" style="margin-top:6px">
-  <label>検知器の表示画面の写真（必須）</label><input type="file" id="ph" accept="image/*" capture="environment"><img id="th" hidden alt=""><div id="pd" class="sm" style="margin-top:6px"></div>
+  <label>検知器の表示画面の写真（必須）</label><div class="row2"><button type="button" id="phc">📷 カメラで撮影</button><button type="button" id="phl">🖼 撮影済みの写真を選ぶ</button></div>
+  <input type="file" id="ph" accept="image/*" capture="environment" class="vh"><input type="file" id="ph2" accept="image/*" class="vh"><img id="th" hidden alt=""><div id="pd" class="sm" style="margin-top:6px"></div>
   <label>検知器の結果（mg/L）：写真から自動で読み取ります</label><input type="number" id="val" step="0.01" min="0" inputmode="decimal" placeholder="0.00"><div id="ocr" class="sm" style="margin-top:6px"></div>
   <label>酒気帯び（0.15mg/L以上で自動的に「有」）</label><div id="alv"><span class="tag">未判定</span></div>
   <div id="wn" class="tag ng" hidden style="margin-top:8px;display:block">酒気帯びの恐れあり。運転せず、管理者へ連絡してください。</div>
@@ -88,25 +89,19 @@ function dayCheck(pop){if(!pday||!blob)return;const rd=$('#at').value.slice(0,10
  if(!ok&&pop)alert(`写真の${pday.src}（${pday.d}）が、確認日（${rd}）と一致しません。\n別の日の写真ではないか確認してください。\n（このまま送信することもできます）`)}
 $('#at').onchange=()=>dayCheck(true);
 async function readSeg(f){const bm=await createImageBitmap(f),s=Math.min(1,1200/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*s);c.height=Math.round(bm.height*s);const x=c.getContext('2d');x.drawImage(bm,0,0,c.width,c.height);const im=x.getImageData(0,0,c.width,c.height);return sevenSeg(im.data,c.width,c.height)}
-let tj=null;const loadT=()=>tj||(tj=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=()=>res(window.Tesseract);s.onerror=rej;document.head.appendChild(s)}));
-async function readNum(f){const T=await loadT(),bm=await createImageBitmap(f),s=Math.min(1,1400/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.round(bm.width*s);c.height=Math.round(bm.height*s);
- const x=c.getContext('2d');x.drawImage(bm,0,0,c.width,c.height);const im=x.getImageData(0,0,c.width,c.height),d=im.data,iv=x.createImageData(im);
- for(let i=0;i<d.length;i+=4){const g=.3*d[i]+.59*d[i+1]+.11*d[i+2];d[i]=d[i+1]=d[i+2]=g;iv.data[i]=iv.data[i+1]=iv.data[i+2]=255-g;iv.data[i+3]=255}
- x.putImageData(im,0,0);const c2=document.createElement('canvas');c2.width=c.width;c2.height=c.height;c2.getContext('2d').putImageData(iv,0,0);
- const w=await T.createWorker('eng');await w.setParameters({tessedit_char_whitelist:'0123456789.',tessedit_pageseg_mode:'11'});let r=null;
- for(const k of [c,c2]){const t=(await w.recognize(k)).data.text,m=t.match(/\d[.,]\d{2,3}/);if(m){r=parseFloat(m[0].replace(',','.'));break}}
- await w.terminate();return r}
-$('#ph').onchange=async e=>{blob=null;pday=null;$('#th').hidden=true;$('#pd').textContent='';$('#ocr').textContent='';$('#val').value='';judge();const f=e.target.files[0];if(!f)return;
+async function onPhoto(e){blob=null;pday=null;$('#th').hidden=true;$('#pd').textContent='';$('#ocr').textContent='';$('#val').value='';judge();const f=e.target.files[0];if(!f)return;
  try{pday=photoDay(await f.arrayBuffer(),f)}catch(x){}
  try{blob=await shrink(f)}catch(z){blob=f}
  $('#th').src=URL.createObjectURL(blob);$('#th').hidden=false;dayCheck(true);
- $('#ocr').textContent='写真から数値を読み取り中…（初回は少し時間がかかります）';
- try{let v=null;try{v=await readSeg(blob)}catch(z){}if(v==null||v>=2)v=await readNum(blob);if(v!=null&&v<2){$('#val').value=v.toFixed(2);judge();$('#ocr').textContent=`写真から ${v.toFixed(2)} と読み取りました。検知器の表示と違う場合は修正してください。`}else{$('#ocr').textContent='数値を読み取れませんでした。写真を見て、手入力してください。'}}
- catch(x){$('#ocr').textContent='自動読み取りを利用できませんでした。手入力してください。'}};
+ $('#ocr').textContent='写真から数値を読み取り中…';
+ try{let v=null;try{v=await readSeg(blob)}catch(z){}if(v!=null&&v<2){$('#val').value=v.toFixed(2);judge();$('#ocr').textContent=`写真から ${v.toFixed(2)} と読み取りました。検知器の表示と違う場合は修正してください。`}else{$('#ocr').textContent='数値を読み取れませんでした。写真を見て、手入力してください。'}}
+ catch(x){$('#ocr').textContent='自動読み取りを利用できませんでした。手入力してください。'}}
+$('#phc').onclick=()=>$('#ph').click();$('#phl').onclick=()=>$('#ph2').click();
+$('#ph').onchange=onPhoto;$('#ph2').onchange=onPhoto;
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 
 function resetForm(){editId=null;$('#eb').hidden=true;$('#veh').selectedIndex=0;$('#at').value=nowL();document.querySelector('[name=ty][value=運転前]').checked=true;document.querySelector('[name=me][value=その他]').checked=true;
- $('#mo').hidden=false;$('#mo').value=DEF;$('#val').value='';$('#note').value='';$('#ph').value='';blob=null;pday=null;$('#th').hidden=true;$('#ocr').textContent='';$('#pd').textContent='';judge()}
+ $('#mo').hidden=false;$('#mo').value=DEF;$('#val').value='';$('#note').value='';$('#ph').value='';$('#ph2').value='';blob=null;pday=null;$('#th').hidden=true;$('#ocr').textContent='';$('#pd').textContent='';judge()}
 $('#ec').onclick=resetForm;
 $('#sub').onclick=async()=>{
  const d={veh:$('#veh').value,at:$('#at').value,ty:val('ty'),me:val('me'),mo:$('#mo').value.trim(),val:$('#val').value,note:$('#note').value.trim()};
@@ -135,7 +130,7 @@ async function act(e){const t=e.target,d=t.dataset;try{
  if(d.ph){t.textContent='読み込み中…';const j=await call('photo',{id:d.ph});t.outerHTML=`<img class="pi" src="${j.img}" alt="検知器">`}
  if(d.ed){const c=rows.find(x=>x.id==d.ed);editId=c.id;if(![...$('#veh').options].some(o=>o.value==c.veh))$('#veh').add(new Option(c.veh));$('#veh').value=c.veh;$('#at').value=c.at;
   document.querySelector(`[name=ty][value=${c.ty}]`).checked=true;const mr=document.querySelector(`[name=me][value=${c.me}]`);if(mr)mr.checked=true;$('#mo').hidden=c.me!='その他';$('#mo').value=c.mo;
-  $('#val').value=c.val;judge();$('#note').value=c.note;$('#ph').value='';blob=null;$('#th').hidden=true;$('#eb').hidden=false;tab(1);window.scrollTo(0,0);msg('写真を変更しない場合は、そのまま送信できます')}
+  $('#val').value=c.val;judge();$('#note').value=c.note;$('#ph').value='';$('#ph2').value='';blob=null;$('#th').hidden=true;$('#eb').hidden=false;tab(1);window.scrollTo(0,0);msg('写真を変更しない場合は、そのまま送信できます')}
  if(d.del&&confirm('この記録を削除します。よろしいですか？')){await call('remove',{id:d.del});msg('削除しました');await load()}
  if(d.rq){const r=prompt('確認の取消を申請します。理由を入力してください');if(r){await call('reqcancel',{id:d.rq,reason:r});msg('取消を申請しました。管理者の許可をお待ちください');await load()}}
  }catch(x){msg(x.message,1)}}
